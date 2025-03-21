@@ -1,0 +1,39 @@
+# Inspired by Josh's 16-bit stripped-down RISC ISA
+# Also inspired by https://user.eng.umd.edu/~blj/risc/RiSC-isa.pdf
+
+Hardware:
+- Register file:
+    x0
+    x1 (sp)
+    x2 (a0)
+    x3 (a1)
+- Program counter:
+    pc
+
+- Register indices are 3 indices
+- Immediate values are 16 bits
+- Instructions are 2 bytes wide
+
+=== IMMEDIATE ===
+addi rd, rs, imm
+nandi rd, rs, imm
+
+=== ALU ===
+swb rs, rd                  rd <- byteswap(rs)
+nand rs, rd, imm            rd <- rd NAND rs
+sl rs, rd                   rd <- rs << 1
+sr rs, rd                   rd <- rs >> 1
+add rs, rd                  rd <- rs + rd
+
+=== JUMP ===
+jalr, rs                    rd <- pc + 2; pc <- rs
+
+=== BR ===
+bu label                    pc <- pc + label
+bn rs, label                pc <- rs < 0 ? (pc + label) : (pc + 2)
+bz rs, label                pc <- rs == 0 ? (pc + label) : (pc + 2)
+bp rs, label                pc <- rs > 0 ? (pc + label) : (pc + 2)
+
+=== MEM ===
+lw rd, offset(rs)           rd <- mem[rs + offset]
+sw rd, offset(rs)           mem[rs + offset] <- rd
