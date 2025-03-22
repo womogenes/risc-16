@@ -1,14 +1,21 @@
-    lw 1, 0, count    # load reg1 with 5 (uses symbolic address)
-    lw 2, 1, 2        # load reg2 with -1 (uses numeric address)
+    lw 1, count(x0)    # load reg1 with 5 (uses symbolic address)
+    lw 2, 2(x1)        # load reg2 with -1 (uses numeric address)
+    addi x1, x2, 0
 
 start:
-    add 1, 1, 2        # decrement reg1 -- could have been addi 1,1,-1
-    beq 0, 1, 1        # goto end of program when reg1==0
-    beq 0, 0, start    # go back to the beginning of the loop
+    add x1, x1, x2        # decrement reg1 -- could have been addi 1,1,-1
 
-done: halt                 # end of program
+addi a1, x0, 100
+addi a1, x1, -1
+nandi a1, x2, 100
+nandi a1, x3, -1
 
-asdasdfadfadfafd
+swb x3, x2
+nand a1, x0, x3
+sl x4, x0
+sl x1, x2
+
+# done: halt                 # end of program
 
 # Data section
 count:      .fill 5

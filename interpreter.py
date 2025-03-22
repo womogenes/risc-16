@@ -1,6 +1,7 @@
 import re
 
 from reg_names import REG_NAMES
+from encode import encode
 
 class Interpreter:
     def __init__(self,
@@ -67,7 +68,14 @@ class Interpreter:
         # SECOND PASS: write instructions to memory, etc.
         cur_addr = self.PROG_START
         for line_no, addr, inst in insts:
-            print(line_no, addr, inst)
+            try:
+                print(f"=== {line_no}: {inst} ===")
+                encoding = encode(inst, addr, self.labels)
+                print(bin(encoding)[2:].zfill(16))
+            except Exception as e:
+                print(f"Error at line {line_no+1}: {e}")
+                exit(1)
+
 
 if __name__ == "__main__":
     with open("./scripts/test.S") as fin:
