@@ -22,11 +22,12 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         idx = regname2idx(reg_name)
         return bin(idx)[2:].zfill(3)
 
-    def si(x: str, width: int, signed: bool) -> str:
+    def si(x: str, width: int, signed: bool, offset: bool = False) -> str:
         """
         Encode x as a signed/unsigned immediate.
         x is allowed to be a label, in which case we
             compute the offset from current address.
+        Offset: whether to compute label as an offset to addr.
         """
         if isinstance(x, int) or x.lstrip("-+").isdecimal():
             x = int(x)
@@ -42,8 +43,8 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         # If is not numeric, it is a label
         if not x in labels:
             raise NameError(f"Label '{x}' not found")
-        offset = labels[x] - addr
-        return si(offset, width, signed)
+        value = labels[x] - addr if offset else labels[x]
+        return si(value, width, signed)
 
     opcode, args_str = inst_str.split(" ", 1)
     args = re.split(r"[,\s]+", args_str)
@@ -92,7 +93,7 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
     if opcode in br_type:
         assert len(args) == 2, "Expected 1 register, 1 label for br-type instruction"
         rs = r(args[0])
-        imm = si(args[1], 8, True)
+        imm = si(args[1], 8, True, True)
         assert imm[-1] == "0", "Expected multiple of 2 for br-type immediate"
         return int(f"{br_type[opcode]}_{rs}_{imm}", 2)
 

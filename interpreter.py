@@ -26,8 +26,8 @@ class Interpreter:
         """
         print(f"PC={self.pc}")
         print(f"Regs: ", end="")
-        for i in range(4):
-            print(f"{REG_NAMES[i][0]}={hex(self.reg[i])}")
+        print(", ".join([f"{REG_NAMES[i][0]}=0x{hex(self.reg[i])[2:].zfill(4)}" \
+                         for i in range(4)]))
     
     def run(self):
         """
@@ -36,6 +36,8 @@ class Interpreter:
         self.pc = self.PROG_START
         while self.pc != 0:
             self.execute_step()
+
+        self.dump_state()
     
     def execute_step(self):
         """
@@ -95,14 +97,14 @@ class Interpreter:
                 cur_addr += 2
             
             except Exception as e:
-                print(f"Error at line {line_no+1}: {e}")
+                print(f"Error loading at line {line_no+1}: {e}")
                 exit(1)
             
         return cur_addr - self.PROG_START
 
 
 if __name__ == "__main__":
-    with open("./scripts/test.S") as fin:
+    with open("./scripts/fib.S") as fin:
         prog = fin.read()
     
     interp = Interpreter()
