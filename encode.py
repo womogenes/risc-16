@@ -3,7 +3,7 @@
 import re
 from reg_names import regname2idx
 
-def encode(inst_str: str, addr: int, labels: dict):
+def encode(inst_str: str, addr: int, labels: dict) -> int:
     """
     Encodes instruction as a 16-bit integer.
         inst: raw instruction
@@ -26,7 +26,7 @@ def encode(inst_str: str, addr: int, labels: dict):
         """
         Encode x as a signed/unsigned immediate.
         x is allowed to be a label, in which case we
-            compute the offset to current address.
+            compute the offset from current address.
         """
         if isinstance(x, int) or x.lstrip("-+").isdecimal():
             x = int(x)

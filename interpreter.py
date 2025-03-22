@@ -2,6 +2,7 @@ import re
 
 from reg_names import REG_NAMES
 from encode import encode
+from execute import execute
 
 class Interpreter:
     def __init__(self,
@@ -28,6 +29,25 @@ class Interpreter:
         for i in range(4):
             print(f"{REG_NAMES[i][0]}={hex(self.reg[i])}")
     
+    def run(self):
+        """
+        Runs the program.
+        """
+        self.pc = self.PROG_START
+        while self.pc != 0:
+            self.execute_step()
+    
+    def execute_step(self):
+        """
+        Steps the program forward.
+        """
+        try:
+            self.pc = execute(
+                self.mem[self.pc], self.reg, self.mem, self.pc)
+        except Exception as e:
+            print(f"Execution crashed while pc={self.pc}: {e}")
+            exit(1)
+
     def load_prog(self, prog: str):
         """
         STRING PARSING !!
@@ -69,12 +89,16 @@ class Interpreter:
         cur_addr = self.PROG_START
         for line_no, addr, inst in insts:
             try:
-                print(f"=== {line_no}: {inst} ===")
+                # print(f"\n=== {line_no}: {inst} ===")
                 encoding = encode(inst, addr, self.labels)
-                print(bin(encoding)[2:].zfill(16))
+                self.mem[cur_addr] = encoding
+                cur_addr += 2
+            
             except Exception as e:
                 print(f"Error at line {line_no+1}: {e}")
                 exit(1)
+            
+        return cur_addr - self.PROG_START
 
 
 if __name__ == "__main__":
@@ -82,4 +106,7 @@ if __name__ == "__main__":
         prog = fin.read()
     
     interp = Interpreter()
-    interp.load_prog(prog)
+    print(f"Loading program...")
+    prog_len = interp.load_prog(prog)
+    print(f"Loaded program of {prog_len} bytes.")
+    interp.run()
