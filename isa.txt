@@ -13,10 +13,11 @@ Hardware:
 - Register indices are 3 indices
 - Immediate values are 16 bits
 - Instructions are 2 bytes wide
+- PC is always even, so we chop off the last bit
 
 === IMMEDIATE ===
-addi rd, rs, imm
-nandi rd, rs, imm
+addi rd, rs, imm            rd <- rs + imm
+nandi rd, rs, imm           rd <- 
 
 === ALU ===
 swb rs, rd                  rd <- byteswap(rs)
