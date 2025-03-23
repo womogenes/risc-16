@@ -30,8 +30,9 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         Offset: whether to compute label as an offset to addr.
         """
         try:
-            assert re.match("-?\d+", x) or re.match("0x[0-9a-f]+", x)
-            x = eval(x)
+            assert isinstance(x, int) or (isinstance(x, str) and re.match("-?\d+", x) or re.match("0x[0-9a-f]+", x))
+            if isinstance(x, str):
+                x = eval(x)
             assert isinstance(x, int)
             if x >= 0 or (not signed):
                 if x >= (1<<width):
@@ -42,12 +43,18 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
                     raise SyntaxError(f"Signed immediate '{x}' does not fit in {width} bits")
                 return bin((1<<width) + x)[2:].zfill(width)
         
-        except:
+        except AssertionError:
             # If x is not numeric, it is a label
             if not x in labels:
                 raise NameError(f"Label '{x}' not found")
             value = labels[x] - addr if offset else labels[x]
             return si(value, width, signed)
+    
+    def join_subinsts(subinstructions: list):
+        """
+        Recursively join list of instructions.
+        """
+        return sum([encode(inst, addr, labels) for inst in subinstructions], [])
 
     opcode, args_str = re.findall(r"^([\.\w]+)(?: (.+))?$", inst_str)[0]
     args = re.split(r"[,\s]+", args_str)
@@ -64,8 +71,28 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
     if opcode == "neg":
         assert len(args) == 2, "Expected 2 registers for neg instruction"
         rd, rs = args
-        return encode(f"nand {rd}, {rs}, {rs}", addr, labels) + \
-               encode(f"addi {rd}, {rd}, 1", addr, labels)
+        return join_subinsts([f"nand {rd}, {rs}, {rs}",
+                              f"addi {rd}, {rd}, 1"])
+
+    if opcode == "li":
+        assert len(args) == 2, "Expected 1 register, 1 immediate for li instruction"
+        rd, imm = args
+        imm = si(imm, 16, 1)
+        imm_lo = int(imm[8:16], 2)
+
+        # Add an extra 1 to compensate for sign extensions
+        # Two's complement is weird
+        imm_hi = (int(imm[0:8], 2) + (1 if imm_lo & 0xC0 else 0)) & 0xFF
+
+        # If there are high bits, we must do swap thing
+        if imm_hi != 0:
+            return join_subinsts([f"addi {rd}, x0, {imm_hi}",
+                                f"swb {rd}, {rd}",
+                                f"addi {rd}, {rd}, {imm_lo}"])
+
+        # Otherwise, we can add directly
+        return encode(f"addi {rd}, x0, {imm_lo}", addr, labels)
+
 
     ## IMM-TYPE
     imm_type = { "addi": "10", "nandi": "11" }

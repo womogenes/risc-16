@@ -5,6 +5,8 @@ from reg_names import REG_NAMES
 from encode import encode
 from execute import execute
 
+from decode import decode
+
 class Interpreter:
     def __init__(self,
                  PROG_START=0x0010):
@@ -28,7 +30,8 @@ class Interpreter:
         # print(f"=== STATE ===")
         # print(f"PC={self.pc}, cur_inst={self.mem[self.pc]}")
         # print(f"Regs:", ", ".join([hex(x) for x in self.reg]))
-        print(f"pc: {self.pc:>4}\tinst: 0b{bin(self.mem[self.pc])[2:].zfill(16)}", end="\t")
+        print(f"pc: {self.pc:>4}\tinst: 0b{bin(self.mem[self.pc])[2:].zfill(16)}", end=" ")
+        print(f"{decode(self.mem[self.pc]):>20}", end="\t")
         print("regs:", ", ".join([f"0x{hex(x)[2:].zfill(4)}" for x in self.reg]))
     
     def run(self):
@@ -123,5 +126,5 @@ if __name__ == "__main__":
     interp = Interpreter()
     print(f"Loading program...")
     prog_len = interp.load_prog(prog)
-    print(f"Loaded program of {prog_len} bytes.")
+    print(f"Loaded program of {prog_len*2} bytes.")
     interp.run()
