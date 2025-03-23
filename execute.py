@@ -42,7 +42,7 @@ def execute(inst: int, reg: list, mem: list, pc: int):
             sto(rd, ~(reg[rs] & imm_imm))
     
     # Update PC (default value)
-    pc += 2
+    pc += 1
 
     ## ALU-TYPE
     opcode = (inst & (0b11111)<<11) >> 11
@@ -63,7 +63,7 @@ def execute(inst: int, reg: list, mem: list, pc: int):
     ## JUMP-TYPE
     match opcode:
         case 0b00000:
-            sto(rd, pc + 2)
+            sto(rd, pc + 1)
             pc = reg[rs]
     
     ## BR-TYPE

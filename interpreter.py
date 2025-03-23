@@ -1,4 +1,5 @@
 import re
+from pprint import pprint
 
 from reg_names import REG_NAMES
 from encode import encode
@@ -6,7 +7,7 @@ from execute import execute
 
 class Interpreter:
     def __init__(self,
-                 PROG_START=0x1000):
+                 PROG_START=0x0010):
         """
         Create new Interpreter. Params:
             - PROG_START: location in memory where instructions live
@@ -24,10 +25,13 @@ class Interpreter:
         """
         Print state.
         """
-        print(f"PC={self.pc}")
+        print(f"=== STATE ===")
+        print(f"PC={self.pc}, cur_inst={self.mem[self.pc]}")
         print(f"Regs: ", end="")
         print(", ".join([f"{REG_NAMES[i][0]}=0x{hex(self.reg[i])[2:].zfill(4)}" \
                          for i in range(4)]))
+        print("mem:")
+        pprint(self.mem[:24])
     
     def run(self):
         """
@@ -44,6 +48,7 @@ class Interpreter:
         Steps the program forward.
         """
         try:
+            self.dump_state()
             self.pc = execute(
                 self.mem[self.pc], self.reg, self.mem, self.pc)
         except Exception as e:
@@ -85,7 +90,7 @@ class Interpreter:
 
             # Increment cur address by instruction width
             # TODO: change once we have pseudoinstructions
-            cur_addr += 2
+            cur_addr += 1
 
         # SECOND PASS: write instructions to memory, etc.
         cur_addr = self.PROG_START
@@ -93,11 +98,12 @@ class Interpreter:
             try:
                 # print(f"\n=== {line_no}: {inst} ===")
                 encoding = encode(inst, addr, self.labels)
+                print(bin(encoding)[2:].zfill(16), "\t", inst, "\t", cur_addr)
                 self.mem[cur_addr] = encoding
-                cur_addr += 2
+                cur_addr += 1
             
             except Exception as e:
-                print(f"Error loading at line {line_no+1}: {e}")
+                print(f"Error loading at line {line_no+1}: {inst}\n\t{e}")
                 exit(1)
             
         return cur_addr - self.PROG_START
