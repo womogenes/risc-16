@@ -1,7 +1,8 @@
 # Compute the nth fibonacci number
 addi a0, zero, 0x8f
-nand a0, a0, a0
-lw a0, 0(a0)
+neg a0, a0
+
+halt
 
 data:
-  .fill 10
+  .fill -1

@@ -14,7 +14,7 @@ class Interpreter:
         """
         # Core components
         self.pc = PROG_START
-        self.reg = [0] * 4
+        self.reg = [0, 0xFFFF, 0, 0]
         self.mem = [0] * (1<<16)
         self.labels = {}
 
@@ -28,7 +28,7 @@ class Interpreter:
         # print(f"=== STATE ===")
         # print(f"PC={self.pc}, cur_inst={self.mem[self.pc]}")
         # print(f"Regs:", ", ".join([hex(x) for x in self.reg]))
-        print(f"pc: {self.pc:>4}\tinst: 0x{hex(self.mem[self.pc])[2:].zfill(4)}", end="\t")
+        print(f"pc: {self.pc:>4}\tinst: 0b{bin(self.mem[self.pc])[2:].zfill(16)}", end="\t")
         print("regs:", ", ".join([f"0x{hex(x)[2:].zfill(4)}" for x in self.reg]))
     
     def run(self):
@@ -90,7 +90,7 @@ class Interpreter:
                 # Some pseudoinstructions are multiple words.
                 opcode_w = [
                     [1, ["addi", "nandi", "swb", "nand", "sl", "sr", "add", "jalr", "bn", "bz", "bp", "lw", "sw"]],
-                    [1, ["halt"]],
+                    [1, ["halt", ".fill"]],
                     [2, ["neg"]],
                     [3, ["li"]],
                     [4, ["jal"]]
@@ -104,12 +104,13 @@ class Interpreter:
         cur_addr = self.PROG_START
         for line_no, addr, inst in insts:
             try:
-                for i, encoding in enumerate(encode(inst, addr, self.labels)):
-                    self.mem[cur_addr + i] = encoding
-                cur_addr += 1
+                for encoding in encode(inst, addr, self.labels):
+                    self.mem[cur_addr] = encoding
+                    cur_addr += 1
             
             except Exception as e:
                 print(f"Error loading at line {line_no+1}: {inst}\n\t{e}")
+                raise e
                 exit(1)
             
         return cur_addr - self.PROG_START

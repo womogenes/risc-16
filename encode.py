@@ -49,7 +49,7 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
             value = labels[x] - addr if offset else labels[x]
             return si(value, width, signed)
 
-    opcode, args_str = inst_str.split(" ", 1)
+    opcode, args_str = re.findall(r"^([\.\w]+)(?: (.+))?$", inst_str)[0]
     args = re.split(r"[,\s]+", args_str)
 
     ## FILL DIRECTIVE
@@ -59,7 +59,13 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
     
     ## PSEUDOINSTRUCTIONS
     if opcode == "halt":
-        return [encode("jalr x0, x0", addr, labels)]
+        return encode("jalr x0, x0", addr, labels)
+    
+    if opcode == "neg":
+        assert len(args) == 2, "Expected 2 registers for neg instruction"
+        rd, rs = args
+        return encode(f"nand {rd}, {rs}, {rs}", addr, labels) + \
+               encode(f"addi {rd}, {rd}, 1", addr, labels)
 
     ## IMM-TYPE
     imm_type = { "addi": "10", "nandi": "11" }
