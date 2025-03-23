@@ -25,13 +25,11 @@ class Interpreter:
         """
         Print state.
         """
-        print(f"=== STATE ===")
-        print(f"PC={self.pc}, cur_inst={self.mem[self.pc]}")
-        print(f"Regs: ", end="")
-        print(", ".join([f"{REG_NAMES[i][0]}=0x{hex(self.reg[i])[2:].zfill(4)}" \
-                         for i in range(4)]))
-        print("mem:")
-        pprint(self.mem[:24])
+        # print(f"=== STATE ===")
+        # print(f"PC={self.pc}, cur_inst={self.mem[self.pc]}")
+        # print(f"Regs:", ", ".join([hex(x) for x in self.reg]))
+        print(f"pc: {self.pc:>4}\tinst: 0x{hex(self.mem[self.pc])[2:].zfill(4)}", end="\t")
+        print("regs:", ", ".join([f"0x{hex(x)[2:].zfill(4)}" for x in self.reg]))
     
     def run(self):
         """
@@ -40,7 +38,6 @@ class Interpreter:
         self.pc = self.PROG_START
         while self.pc != 0:
             self.execute_step()
-
         self.dump_state()
     
     def execute_step(self):
@@ -96,9 +93,7 @@ class Interpreter:
         cur_addr = self.PROG_START
         for line_no, addr, inst in insts:
             try:
-                # print(f"\n=== {line_no}: {inst} ===")
                 encoding = encode(inst, addr, self.labels)
-                print(bin(encoding)[2:].zfill(16), "\t", inst, "\t", cur_addr)
                 self.mem[cur_addr] = encoding
                 cur_addr += 1
             

@@ -29,8 +29,9 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
             compute the offset from current address.
         Offset: whether to compute label as an offset to addr.
         """
-        if isinstance(x, int) or x.lstrip("-+").isdecimal():
-            x = int(x)
+        try:
+            x = eval(x)
+            assert isinstance(x, int)
             if x >= 0 or (not signed):
                 if x >= (1<<width):
                     raise SyntaxError(f"Unsigned immediate '{x}' does not fit in {width} bits")
@@ -40,11 +41,12 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
                     raise SyntaxError(f"Signed immediate '{x}' does not fit in {width} bits")
                 return bin((1<<width) + x)[2:].zfill(width)
         
-        # If is not numeric, it is a label
-        if not x in labels:
-            raise NameError(f"Label '{x}' not found")
-        value = labels[x] - addr if offset else labels[x]
-        return si(value, width, signed)
+        except:
+            # If x is not numeric, it is a label
+            if not x in labels:
+                raise NameError(f"Label '{x}' not found")
+            value = labels[x] - addr if offset else labels[x]
+            return si(value, width, signed)
 
     opcode, args_str = inst_str.split(" ", 1)
     args = re.split(r"[,\s]+", args_str)
