@@ -30,6 +30,7 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         Offset: whether to compute label as an offset to addr.
         """
         try:
+            assert re.match("-?\d+", x) or re.match("0x[0-9a-f]+", x)
             x = eval(x)
             assert isinstance(x, int)
             if x >= 0 or (not signed):
