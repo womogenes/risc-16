@@ -61,6 +61,7 @@ class Interpreter:
             - Get locations of labels
         """
         lines = prog.strip().split("\n")
+        new_lines = []
         insts = []
 
         # FIRST PASS: convert pseudoinstructions, get label locations
@@ -84,17 +85,27 @@ class Interpreter:
                     self.labels[label] = cur_addr
                 
                 insts.append((line_no, cur_addr, inst))
+                opcode = inst.split(" ", 1)[0]
 
-            # Increment cur address by instruction width
-            # TODO: change once we have pseudoinstructions
-            cur_addr += 1
+                # Some pseudoinstructions are multiple words.
+                opcode_w = [
+                    [1, ["addi", "nandi", "swb", "nand", "sl", "sr", "add", "jalr", "bn", "bz", "bp", "lw", "sw"]],
+                    [1, ["halt"]],
+                    [2, ["neg"]],
+                    [3, ["li"]],
+                    [4, ["jal"]]
+                ]
+                for w, opcodes in opcode_w:
+                    if opcode in opcodes:
+                        cur_addr += w
+                        break
 
         # SECOND PASS: write instructions to memory, etc.
         cur_addr = self.PROG_START
         for line_no, addr, inst in insts:
             try:
-                encoding = encode(inst, addr, self.labels)
-                self.mem[cur_addr] = encoding
+                for i, encoding in enumerate(encode(inst, addr, self.labels)):
+                    self.mem[cur_addr + i] = encoding
                 cur_addr += 1
             
             except Exception as e:

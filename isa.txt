@@ -27,13 +27,13 @@ sr rs, rd                   rd <- rs >> 1
 add rs, rd                  rd <- rs + rd
 
 === JUMP ===
-jalr, rs                    rd <- pc + 2; pc <- rs
+jalr, rs                    rd <- pc + 1; pc <- rs
 
 === BR ===
 bu label                    pc <- pc + label
-bn rs, label                pc <- rs < 0 ? (pc + label) : (pc + 2)
-bz rs, label                pc <- rs == 0 ? (pc + label) : (pc + 2)
-bp rs, label                pc <- rs > 0 ? (pc + label) : (pc + 2)
+bn rs, label                pc <- rs < 0 ? (pc + label) : (pc + 1)
+bz rs, label                pc <- rs == 0 ? (pc + label) : (pc + 1)
+bp rs, label                pc <- rs > 0 ? (pc + label) : (pc + 1)
 
 === MEM ===
 lw rd, offset(rs)           rd <- mem[rs + offset]

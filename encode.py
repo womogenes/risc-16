@@ -55,7 +55,11 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
     ## FILL DIRECTIVE
     if opcode == ".fill":
         assert len(args) == 1, "Expected 2 arguments for .fill directive"
-        return int(si(args[0], 16, True), 2)
+        return [int(si(args[0], 16, True), 2)]
+    
+    ## PSEUDOINSTRUCTIONS
+    if opcode == "halt":
+        return [encode("jalr x0, x0", addr, labels)]
 
     ## IMM-TYPE
     imm_type = { "addi": "10", "nandi": "11" }
@@ -63,7 +67,7 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         assert len(args) == 3, "Expected 2 registers, 1 immediate for imm-type instruction"
         imm = si(args[2], 8, True)
         rd, rs = r(args[0]), r(args[1])
-        return int(f"{imm_type[opcode]}_{imm[0:3]}_{rs}_{rd}_{imm[3:8]}", 2)
+        return [int(f"{imm_type[opcode]}_{imm[0:3]}_{rs}_{rd}_{imm[3:8]}", 2)]
 
     ## ALU2-TYPE
     alu2_type = { "swb": "01000", "sl": "01010", "sr": "01011" }
@@ -71,7 +75,7 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         assert len(args) == 2, "Expected 2 registers for alu2-type instruction"
         rd = r(args[0])
         rs = r(args[1])
-        return int(f"{alu2_type[opcode]}_{rs}_{rd}_00000", 2)
+        return [int(f"{alu2_type[opcode]}_{rs}_{rd}_00000", 2)]
     
     ## ALU3-TYPE
     alu3_type = { "nand": "01001", "add": "01100" }
@@ -80,8 +84,7 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         rd = r(args[0])
         rs = r(args[1])
         ro = r(args[2])
-        res = int(f"{alu3_type[opcode]}_{rs}_{rd}_{ro}_00", 2)
-        return res
+        return [int(f"{alu3_type[opcode]}_{rs}_{rd}_{ro}_00", 2)]
 
     ## JUMP-TYPE
     jump_type = { "jalr": "00000" }
@@ -89,7 +92,7 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         assert len(args) == 2, "Expected 2 registers for jump-type instruction"
         rd = r(args[0])
         rs = r(args[1])
-        return int(f"{jump_type[opcode]}_{rs}_{rd}_00000", 2)
+        return [int(f"{jump_type[opcode]}_{rs}_{rd}_00000", 2)]
     
     ## BR-TYPE
     br_type = { "bn": "00101", "bz": "00110", "bp": "00111" }
@@ -98,7 +101,7 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         rs = r(args[0])
         imm = si(args[1], 8, True, True)
         assert imm[-1] == "0", "Expected multiple of 2 for br-type immediate"
-        return int(f"{br_type[opcode]}_{rs}_{imm}", 2)
+        return [int(f"{br_type[opcode]}_{rs}_{imm}", 2)]
 
     ## MEM-TYPE
     mem_type = { "lw": "00010", "sw": "00011" }
@@ -109,7 +112,7 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         imm = si(imm, 5, True)
         assert imm[-1] == "0", "Expected multiple of 2 for mem-type offset"
         rs = r(rs)
-        return int(f"{mem_type[opcode]}_{rs}_{rd}_{imm}", 2)
+        return [int(f"{mem_type[opcode]}_{rs}_{rd}_{imm}", 2)]
     
     raise Exception(f"Opcode '{opcode}' not supported")
 
