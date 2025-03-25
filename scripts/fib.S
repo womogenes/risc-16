@@ -1,12 +1,10 @@
-# Compute the nth fibonacci number
-addi a0, zero, 0x8f
-neg a0, a0
+addi a0, a0, 1
+addi a1, a1, 1
 
-li a1, 0xFFF
-li a0, -2
-li a1, data
-
-halt
+loop:
+  add a0, a0, a1
+  add a1, a0, a1
+  bz x0, loop
 
 data:
   .fill -1

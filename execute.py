@@ -42,7 +42,7 @@ def execute(inst: int, reg: list, mem: list, pc: int):
             sto(rd, ~(reg[rs] & imm_imm))
     
     # Update PC (default value)
-    pc += 1
+    new_pc = pc + 1
 
     ## ALU-TYPE
     opcode = (inst & (0b11111)<<11) >> 11
@@ -64,20 +64,20 @@ def execute(inst: int, reg: list, mem: list, pc: int):
     match opcode:
         case 0b00000:
             sto(rd, pc + 1)
-            pc = reg[rs]
+            new_pc = reg[rs]
     
     ## BR-TYPE
     imm_br = decode_signed(inst & 0xFF, 8)
     match opcode:
         case 0b00101:
             if reg[rs] < 0:
-                pc += imm_br
+                new_pc = pc + imm_br
         case 0b00110:
             if reg[rs] == 0:
-                pc += imm_br
+                new_pc = pc + imm_br
         case 0b00111:
             if reg[rs] > 0:
-                pc += imm_br
+                new_pc = pc + imm_br
 
     ## MEM-TYPE
     imm_mem = decode_signed(inst & 0x1F, 5)
@@ -87,4 +87,4 @@ def execute(inst: int, reg: list, mem: list, pc: int):
         case 0b00011:
             mem[rs + imm_mem] = reg[rd]
 
-    return pc
+    return new_pc

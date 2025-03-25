@@ -5,7 +5,7 @@ REG_NAMES = [
     ["x0", "zero", "0"],
     ["x1", "sp", "1"],
     ["x2", "a0", "2"],
-    ["x3", "a1", "3"]
+    ["x3", "ra", "a1", "3"]
 ]
 
 def regname2idx(name: str):

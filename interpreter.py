@@ -30,9 +30,11 @@ class Interpreter:
         # print(f"=== STATE ===")
         # print(f"PC={self.pc}, cur_inst={self.mem[self.pc]}")
         # print(f"Regs:", ", ".join([hex(x) for x in self.reg]))
+
         print(f"pc: {self.pc:>4}\tinst: 0b{bin(self.mem[self.pc])[2:].zfill(16)}", end=" ")
         print(f"{decode(self.mem[self.pc]):>20}", end="\t")
-        print("regs:", ", ".join([f"0x{hex(x)[2:].zfill(4)}" for x in self.reg]))
+        # print("regs:", ", ".join([f"0x{hex(x)[2:].zfill(4)}" for x in self.reg]))
+        print("regs:", ", ".join([f"0x{str(x).zfill(6)}" for x in self.reg]))
     
     def run(self):
         """
@@ -64,7 +66,6 @@ class Interpreter:
             - Get locations of labels
         """
         lines = prog.strip().split("\n")
-        new_lines = []
         insts = []
 
         # FIRST PASS: convert pseudoinstructions, get label locations
@@ -107,6 +108,9 @@ class Interpreter:
         cur_addr = self.PROG_START
         for line_no, addr, inst in insts:
             try:
+                # TODO: there may be discrepancies if we allocate variable
+                #   number of words for the `li` instruction (b/c we casework)
+                #   on whether the argument takes 1 or 2 bytes
                 for encoding in encode(inst, addr, self.labels):
                     self.mem[cur_addr] = encoding
                     cur_addr += 1

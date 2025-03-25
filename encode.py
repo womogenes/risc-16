@@ -77,7 +77,7 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
     if opcode == "li":
         assert len(args) == 2, "Expected 1 register, 1 immediate for li instruction"
         rd, imm = args
-        imm = si(imm, 16, 1)
+        imm = si(imm, 16, True)
         imm_lo = int(imm[8:16], 2)
 
         # Add an extra 1 to compensate for sign extensions
@@ -87,12 +87,17 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         # If there are high bits, we must do swap thing
         if imm_hi != 0:
             return join_subinsts([f"addi {rd}, x0, {imm_hi}",
-                                f"swb {rd}, {rd}",
-                                f"addi {rd}, {rd}, {imm_lo}"])
+                                  f"swb {rd}, {rd}",
+                                  f"addi {rd}, {rd}, {imm_lo}"])
 
         # Otherwise, we can add directly
         return encode(f"addi {rd}, x0, {imm_lo}", addr, labels)
 
+    if opcode == "jal":
+        assert len(args) == 1, "Expected 1 label for jal instruction"
+        imm = si(args[0], 16, True, True)
+        return join_subinsts([f"li ra, {imm}",
+                              f"jalr ra, ra"])
 
     ## IMM-TYPE
     imm_type = { "addi": "10", "nandi": "11" }
@@ -133,7 +138,6 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         assert len(args) == 2, "Expected 1 register, 1 label for br-type instruction"
         rs = r(args[0])
         imm = si(args[1], 8, True, True)
-        assert imm[-1] == "0", "Expected multiple of 2 for br-type immediate"
         return [int(f"{br_type[opcode]}_{rs}_{imm}", 2)]
 
     ## MEM-TYPE
@@ -143,7 +147,6 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
         rd = r(args[0])
         imm, rs = re.findall(r"^(.+)\((.+)\)$", args[1])[0]
         imm = si(imm, 5, True)
-        assert imm[-1] == "0", "Expected multiple of 2 for mem-type offset"
         rs = r(rs)
         return [int(f"{mem_type[opcode]}_{rs}_{rd}_{imm}", 2)]
     
