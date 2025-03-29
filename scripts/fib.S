@@ -1,10 +1,10 @@
-addi a0, a0, 1
-addi a1, a1, 1
+addi 0, 0, 1
+addi 1, 1, 1
 
 loop:
-  add a0, a0, a1
-  add a1, a0, a1
-  bz x0, loop
+  add 0, 0, 1
+  add 1, 0, 1
+  bz 0, loop
 
-data:
-  .fill -1
+# data:
+#   .fill -1

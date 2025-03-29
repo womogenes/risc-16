@@ -2,10 +2,14 @@
 # First value in each list is the canonical name.
 
 REG_NAMES = [
-    ["x0", "zero", "0"],
-    ["x1", "sp", "1"],
-    ["x2", "a0", "2"],
-    ["x3", "ra", "a1", "3"]
+    ["x0", "zero"],
+    ["x1", "ra"],
+    ["x2", "sp"],
+    ["x3", "gp"],
+    ["x4", "tp"],
+    ["x5", "t0"],
+    ["x6", "t1"],
+    ["x7", "t2"]
 ]
 
 def regname2idx(name: str):

@@ -3,6 +3,8 @@
 import re
 from reg_names import regname2idx
 
+from utils.decode_literal import decode_literal
+
 def encode(inst_str: str, addr: int, labels: dict) -> int:
     """
     Encodes instruction as a 16-bit integer.
@@ -29,21 +31,11 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
             compute the offset from current address.
         Offset: whether to compute label as an offset to addr.
         """
-        try:
-            assert isinstance(x, int) or (isinstance(x, str) and re.match("-?\d+", x) or re.match("0x[0-9a-f]+", x))
-            if isinstance(x, str):
-                x = eval(x)
-            assert isinstance(x, int)
-            if x >= 0 or (not signed):
-                if x >= (1<<width):
-                    raise SyntaxError(f"Unsigned immediate '{x}' does not fit in {width} bits")
-                return bin(x)[2:].zfill(width)
-            else:
-                if x < -(1<<(width-1)) or x >= (1<<(width-1)):
-                    raise SyntaxError(f"Signed immediate '{x}' does not fit in {width} bits")
-                return bin((1<<width) + x)[2:].zfill(width)
-        
-        except AssertionError:
+        res = decode_literal(x, width, signed)
+
+        if res != None:
+            return res
+        else:
             # If x is not numeric, it is a label
             if not x in labels:
                 raise NameError(f"Label '{x}' not found")
@@ -66,7 +58,7 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
     
     ## PSEUDOINSTRUCTIONS
     if opcode == "halt":
-        return encode("jalr x0, x0", addr, labels)
+        return encode("jalr 0, 0", addr, labels)
     
     if opcode == "neg":
         assert len(args) == 2, "Expected 2 registers for neg instruction"
@@ -86,12 +78,12 @@ def encode(inst_str: str, addr: int, labels: dict) -> int:
 
         # If there are high bits, we must do swap thing
         if imm_hi != 0:
-            return join_subinsts([f"addi {rd}, x0, {imm_hi}",
+            return join_subinsts([f"addi {rd}, zero, {imm_hi}",
                                   f"swb {rd}, {rd}",
                                   f"addi {rd}, {rd}, {imm_lo}"])
 
         # Otherwise, we can add directly
-        return encode(f"addi {rd}, x0, {imm_lo}", addr, labels)
+        return encode(f"addi {rd}, zero, {imm_lo}", addr, labels)
 
     if opcode == "jal":
         assert len(args) == 1, "Expected 1 label for jal instruction"

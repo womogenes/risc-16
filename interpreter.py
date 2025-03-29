@@ -9,7 +9,7 @@ from decode import decode
 
 class Interpreter:
     def __init__(self,
-                 PROG_START=0x0010):
+                 PROG_START=0x0100):
         """
         Create new Interpreter. Params:
             - PROG_START: location in memory where instructions live
