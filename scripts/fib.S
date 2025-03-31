@@ -1,9 +1,9 @@
-addi 0, 0, 1
-addi 1, 1, 1
+addi 1, 0, 1
+addi 2, 0, 1
 
 loop:
-  add 0, 0, 1
-  add 1, 0, 1
+  add 1, 1, 2
+  add 2, 1, 2
   bz 0, loop
 
 # data:

@@ -1,5 +1,7 @@
 # Executes instructinos.
 
+from utils.literals import decode_literal
+
 def execute(inst: int, reg: list, mem: list, pc: int):
     """
     Decode instruction and execute it.
@@ -18,23 +20,14 @@ def execute(inst: int, reg: list, mem: list, pc: int):
             return 1
         return 0
 
-    def decode_signed(x: int, width: int):
-        """
-        Decode a signed int with given width.
-        """
-        if not 0 <= x < (1<<width):
-            raise Exception(f"Immediate '{x}' does not fit in {width} bits.")
-        return (x & ((1<<width)-1)) - (x & (1<<(width-1)))*2
-
     rs = (inst & (0b111<<8)) >> 8
     rd = (inst & (0b111<<5)) >> 5
     ro = (inst & (0b111<<2)) >> 2
 
-
     ## IMM-TYPE
     opcode = (inst & (0b11<<14)) >> 14
     imm_imm = ((inst & (0b111<<11)) >> 6) + (inst & 0b11111)
-    imm_imm = decode_signed(imm_imm, 8)
+    imm_imm = decode_literal(imm_imm, 8)
     match opcode:
         case 0b10:
             sto(rd, reg[rs] + imm_imm)
@@ -67,7 +60,7 @@ def execute(inst: int, reg: list, mem: list, pc: int):
             new_pc = reg[rs]
     
     ## BR-TYPE
-    imm_br = decode_signed(inst & 0xFF, 8)
+    imm_br = decode_literal(inst & 0xFF, 8)
     match opcode:
         case 0b00101:
             if reg[rs] < 0:
@@ -80,7 +73,7 @@ def execute(inst: int, reg: list, mem: list, pc: int):
                 new_pc = pc + imm_br
 
     ## MEM-TYPE
-    imm_mem = decode_signed(inst & 0x1F, 5)
+    imm_mem = decode_literal(inst & 0x1F, 5)
     match opcode:
         case 0b00010:
             sto(rd, mem[reg[rs] + imm_mem])

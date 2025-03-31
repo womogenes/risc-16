@@ -1,6 +1,6 @@
 # Decodes instructions.
 
-from reg_names import REG_NAMES
+from utils.reg_names import REG_NAMES
 
 def decode(inst: int):
     """
