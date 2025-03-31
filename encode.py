@@ -70,11 +70,14 @@ def encode(inst: str, addr: int, labels: dict) -> int:
         return join([f"nand {rd}, {rs}, {rs}",
                      f"addi {rd}, {rd}, 1"])
 
+    if opcode == "nop":
+        return join([f"add 0, 0, 0"])
+
     if opcode == "li":
         assert len(args) == 2, \
             "Expected 1 register, 1 immediate for li instruction"
-        rd, imm = args
-        imm = si(imm, 16, True)
+        rd, imm_raw = args
+        imm = si(imm_raw, 16, True)
         imm_lo = int(imm[8:16], 2)
 
         # Add an extra 1 to compensate for sign extensions
@@ -82,7 +85,8 @@ def encode(inst: str, addr: int, labels: dict) -> int:
         imm_hi = (int(imm[0:8], 2) + (1 if imm_lo & 0xC0 else 0)) & 0xFF
 
         # If there are high bits, we must do swap thing
-        if imm_hi != 0:
+        # Also must do swap thing if it's a label
+        if imm_hi != 0 or (encode_literal(imm_raw, 16, True) == None):
             return join([f"addi {rd}, zero, {imm_hi}",
                          f"swb {rd}, {rd}",
                          f"addi {rd}, {rd}, {imm_lo}"])

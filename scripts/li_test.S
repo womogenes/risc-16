@@ -1,0 +1,7 @@
+a:
+  nop
+
+loop:
+
+
+halt

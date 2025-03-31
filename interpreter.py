@@ -1,4 +1,5 @@
 import re
+import sys
 from pprint import pprint
 from collections import defaultdict
 
@@ -10,7 +11,7 @@ from utils.reg_names import REG_NAMES
 
 class Interpreter:
     def __init__(self,
-                 PROG_START=0x0100):
+                 PROG_START=0x1000):
         """
         Create new Interpreter. Params:
             - PROG_START: location in memory where instructions live
@@ -28,13 +29,18 @@ class Interpreter:
         """
         Print state.
         """
-        # print(f"=== STATE ===")
-        # print(f"PC={self.pc}, cur_inst={self.mem[self.pc]}")
-        # print(f"Regs:", ", ".join([hex(x) for x in self.reg]))
-
         print(f"pc: {self.pc:>4}\tinst: 0b{bin(self.mem[self.pc])[2:].zfill(16)}", end=" ")
         print(f"{decode(self.mem[self.pc]):>20}", end="\t")
         print("regs:", ", ".join([f"0x{str(x).zfill(6)}" for x in self.reg]))
+
+    def dump_program(self):
+        """
+        Print contents of program.
+        """
+        cur_addr = interp.PROG_START
+        while interp.mem[cur_addr] > 0:
+            print(hex(cur_addr), "\t", bin(interp.mem[cur_addr])[2:].zfill(16), "\t", decode(interp.mem[cur_addr]))
+            cur_addr += 1
     
     def run(self):
         """
@@ -113,11 +119,17 @@ class Interpreter:
 
 
 if __name__ == "__main__":
-    with open("./scripts/fib.S") as fin:
+    if len(sys.argv) < 2:
+        print(f"Usage: interpreter.py <script>")
+        exit(1)
+
+    with open(sys.argv[1]) as fin:
         prog = fin.read()
     
     interp = Interpreter()
     print(f"Loading program...")
     prog_len = interp.load_prog(prog)
-    print(f"Loaded program of {prog_len*2} bytes.")
+    print(f"Loaded program of {prog_len} words.")
+    interp.dump_program()
+
     interp.run()
