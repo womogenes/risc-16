@@ -39,27 +39,37 @@ def expand(inst: str, opcode: str, args: list[str]):
             
         return load_base + imm_add + load_store
 
-    # Handle different instruction patterns
     if opcode in ["add", "nand"]:
-        return load_vr(args[1]) + load_vr(args[2], "2") + [f"{opcode} 1, 1, 2"] + store_vr(args[0])
+        # If rd is virtual, use "1" (and load_vr will return non-empty list),
+        #   else use the actual value of rd
+        rd, rs, ro = args
+        rd = "1" if is_vreg(rd) else rd
+        rs = "1" if is_vreg(rs) else rs
+        ro = "2" if is_vreg(ro) else ro
+        return load_vr(rs) + load_vr(ro, "2") + [f"{opcode} {rd}, {rs}, {ro}"] + store_vr(args[0])
         
     elif opcode in ["addi", "nandi"]:
-        return load_vr(args[1]) + [f"{opcode} 1, 1, {args[2]}"] + store_vr(args[0])
+        rd, rs, imm = args
+        rd = "1" if is_vreg(rd) else rd
+        rs = "1" if is_vreg(rs) else rs
+        return load_vr(rs) + [f"{opcode} {rd}, {rs}, {imm}"] + store_vr(rd)
         
     elif opcode in ["swb", "sl", "sr"]:
-        return load_vr(args[1]) + [f"{opcode} 1, 1"] + store_vr(args[0])
+        rd, rs = args
+        rd = "1" if is_vreg(rd) else rd
+        rs = "1" if is_vreg(rs) else rs
+        return load_vr(args[1]) + [f"{opcode} {rd}, {rs}"] + store_vr(args[0])
         
     elif opcode == "jalr":
-        result = load_vr(args[1])
-        result.append(f"{opcode} 2, 1")
-        if is_vreg(args[0]):
-            result.append(f"sw 2, {r2idx(args[0])}(0)")
-        return result
+        rd, rs = args
+        rd = "1" if is_vreg(rd) else rd
+        rs = "1" if is_vreg(rs) else rs
+        return load_vr(rs) + [f"{opcode} {rd}, {rs}"] + store_vr(rd)
         
     elif opcode in ["bn", "bz", "bp"]:
-        if is_vreg(args[0]):
-            return [f"lw 1, {r2idx(args[0])}(0)", f"{opcode} 1, {args[1]}"]
-        return [inst]
+        rs, label = args
+        rs = "1" if is_vreg(rs) else rs
+        return load_vr(rs) + [f"{opcode} {rs}, {label}"]
         
     # Default case - no expansion needed
     return [inst]

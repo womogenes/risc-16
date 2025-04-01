@@ -77,6 +77,10 @@ def encode(inst: str, addr: int, labels: dict | None) -> int:
     if opcode == "nop":
         return join([f"add 0, 0, 0"])
 
+    if opcode == "mv":
+        rd, rs = args
+        return join([f"addi {rd}, {rs}, 0"])
+
     if opcode == "li":
         assert len(args) == 2, \
             "Expected 1 register, 1 immediate for li instruction"
@@ -99,10 +103,16 @@ def encode(inst: str, addr: int, labels: dict | None) -> int:
         return encode(f"addi {rd}, zero, {imm_lo}", addr, labels)
 
     if opcode == "jal":
+        # Jump and link
         assert len(args) == 1, "Expected 1 label for jal instruction"
-        imm = si(args[0], 16, True, True)
-        return join([f"li ra, {imm}",
-                     f"jalr ra, ra"])
+        return join([f"li 1, {args[0]}",
+                     f"jalr 1, 1"])
+
+    if opcode == "j":
+        # Jump and DO NOT LINK
+        assert len(args) == 1, "Expected 1 label for j instruction"
+        return join([f"li 1, {args[0]}",
+                     f"jalr 0, 1"])
 
     # IMM-TYPE
     imm_type = {"addi": "10", "nandi": "11"}
