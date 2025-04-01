@@ -42,34 +42,34 @@ def expand(inst: str, opcode: str, args: list[str]):
     if opcode in ["add", "nand"]:
         # If rd is virtual, use "1" (and load_vr will return non-empty list),
         #   else use the actual value of rd
-        rd, rs, ro = args
-        rd = "1" if is_vreg(rd) else rd
-        rs = "1" if is_vreg(rs) else rs
-        ro = "2" if is_vreg(ro) else ro
-        return load_vr(rs) + load_vr(ro, "2") + [f"{opcode} {rd}, {rs}, {ro}"] + store_vr(args[0])
+        vrd, vrs, vro = args
+        rd = "1" if is_vreg(vrd) else vrd
+        rs = "1" if is_vreg(vrs) else vrs
+        ro = "2" if is_vreg(vro) else vro
+        return load_vr(vrs) + load_vr(vro, "2") + [f"{opcode} {rd}, {rs}, {ro}"] + store_vr(vrd)
         
     elif opcode in ["addi", "nandi"]:
-        rd, rs, imm = args
-        rd = "1" if is_vreg(rd) else rd
-        rs = "1" if is_vreg(rs) else rs
-        return load_vr(rs) + [f"{opcode} {rd}, {rs}, {imm}"] + store_vr(rd)
+        vrd, vrs, imm = args
+        rd = "1" if is_vreg(vrd) else vrd
+        rs = "1" if is_vreg(vrs) else vrs
+        return load_vr(vrs) + [f"{opcode} {rd}, {rs}, {imm}"] + store_vr(vrd)
         
     elif opcode in ["swb", "sl", "sr"]:
-        rd, rs = args
-        rd = "1" if is_vreg(rd) else rd
-        rs = "1" if is_vreg(rs) else rs
-        return load_vr(args[1]) + [f"{opcode} {rd}, {rs}"] + store_vr(args[0])
+        vrd, vrs = args
+        rd = "1" if is_vreg(vrd) else vrd
+        rs = "1" if is_vreg(vrs) else vrs
+        return load_vr(vrs) + [f"{opcode} {rd}, {rs}"] + store_vr(vrd)
         
     elif opcode == "jalr":
-        rd, rs = args
-        rd = "1" if is_vreg(rd) else rd
-        rs = "1" if is_vreg(rs) else rs
-        return load_vr(rs) + [f"{opcode} {rd}, {rs}"] + store_vr(rd)
+        vrd, vrs = args
+        rd = "1" if is_vreg(vrd) else vrd
+        rs = "1" if is_vreg(vrs) else vrs
+        return load_vr(vrs) + [f"{opcode} {rd}, {rs}"] + store_vr(vrd)
         
     elif opcode in ["bn", "bz", "bp"]:
-        rs, label = args
-        rs = "1" if is_vreg(rs) else rs
-        return load_vr(rs) + [f"{opcode} {rs}, {label}"]
+        vrs, label = args
+        rs = "1" if is_vreg(vrs) else vrs
+        return load_vr(vrs) + [f"{opcode} {rs}, {label}"]
         
     # Default case - no expansion needed
     return [inst]

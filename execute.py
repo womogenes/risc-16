@@ -24,6 +24,9 @@ def execute(inst: int, reg: list, mem: list, pc: int):
     rd = (inst & (0b111<<5)) >> 5
     ro = (inst & (0b111<<2)) >> 2
 
+    if rd >= 5:
+        raise IndexError(f"Index {rd} out of range for 5 registers")
+
     ## IMM-TYPE
     opcode = (inst & (0b11<<14)) >> 14
     imm_imm = ((inst & (0b111<<11)) >> 6) + (inst & 0b11111)

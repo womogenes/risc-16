@@ -1,5 +1,6 @@
 import re
 import sys
+from pprint import pprint
 
 from encode import encode
 from execute import execute
@@ -122,7 +123,13 @@ class Interpreter:
 
                 # Some pseudoinstructions are multiple words.
                 # This is inefficient but makes for more concise code!
-                inst_width = len(encode(inst, cur_addr, None))
+                try:
+                    inst_width = len(encode(inst, cur_addr, None))
+                except Exception as e:
+                    print(f"Error loading instruction '{inst}': {e}")
+                    raise e
+                    exit(1)
+                    
                 cur_addr += inst_width
 
         # SECOND PASS: write instructions to memory, etc.
