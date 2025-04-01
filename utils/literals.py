@@ -5,7 +5,7 @@ def encode_literal(x: str | int, width: int, signed: bool):
     Decode a literal decimal, hex, or binary string.
     If it is none of the above, return None.
     """
-    if not (isinstance(x, int) or (isinstance(x, str) and re.match("-?\d+", x) or re.match("0x[0-9a-f]+", x))):
+    if not (isinstance(x, int) or (isinstance(x, str) and re.match(r"-?\d+", x) or re.match("0x[0-9a-f]+", x))):
         return None
     
     if isinstance(x, str):

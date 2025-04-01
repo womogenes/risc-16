@@ -51,9 +51,12 @@ class Interpreter:
         Runs the program.
         """
         self.pc = self.PROG_START
+        cycles = 0
         while self.pc != 0:
             self.execute_step()
+            cycles += 1
         self.dump_state()
+        return cycles
     
     def execute_step(self):
         """
@@ -161,4 +164,5 @@ if __name__ == "__main__":
     print(f"Loaded program of {prog_len} words.")
     interp.dump_program()
 
-    interp.run()
+    cycles = interp.run()
+    print(f"Finished running in {cycles} cycles.")
