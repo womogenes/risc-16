@@ -1,13 +1,11 @@
 import re
 import sys
-from pprint import pprint
-from collections import defaultdict
 
 from encode import encode
 from execute import execute
 
 from decode import decode
-from utils.reg_names import REG_NAMES
+from utils.reg_names import REG_NAMES, VREG_NAMES
 
 class Interpreter:
     def __init__(self,
@@ -31,15 +29,20 @@ class Interpreter:
         """
         print(f"pc: {self.pc:>4}\tinst: 0b{bin(self.mem[self.pc])[2:].zfill(16)}", end=" ")
         print(f"{decode(self.mem[self.pc]):>20}", end="\t")
-        print("regs:", ", ".join([f"0x{str(x).zfill(6)}" for x in self.reg]))
+
+        MODE = "decimal"
+        if MODE == "decimal":
+            print("regs:", ", ".join([f"{str(x).rjust(6)}" for x in self.reg]))
+        elif MODE == "hex":
+            print("regs:", ", ".join([f"0x{hex(x)[2:].zfill(8)}" for x in self.reg]))
 
     def dump_program(self):
         """
         Print contents of program.
         """
-        cur_addr = interp.PROG_START
-        while interp.mem[cur_addr] > 0:
-            print(hex(cur_addr), "\t", bin(interp.mem[cur_addr])[2:].zfill(16), "\t", decode(interp.mem[cur_addr]))
+        cur_addr = self.PROG_START
+        while self.mem[cur_addr] > 0:
+            print(hex(cur_addr), "\t", bin(self.mem[cur_addr])[2:].zfill(16), "\t", decode(self.mem[cur_addr]))
             cur_addr += 1
     
     def run(self):
@@ -74,6 +77,21 @@ class Interpreter:
         lines = prog.strip().split("\n")
         insts = []
 
+        # Opcodes and register names are illegal labels
+        def is_valid_label(label: str) -> bool:
+            opcodes = ["addi", "nandi",
+                       "swb", "sl", "sr", "nand", "add",
+                       "jalr",
+                       "bn", "bz", "bp",
+                       "lw", "sw",
+                       "jal", "halt", "nop", "li"]
+            if label in opcodes:
+                return False
+            for names in REG_NAMES + VREG_NAMES:
+                if names != None and label in names:
+                    return False
+            return re.match(r"^[\w\d_]+$", label) is not None
+
         # FIRST PASS: convert pseudoinstructions, get label locations
         cur_addr = self.PROG_START
         for line_no, line in enumerate(lines):
@@ -85,6 +103,8 @@ class Interpreter:
             pure_label_match = re.findall(r"^(\w+):$", line)
             if pure_label_match:
                 label = pure_label_match[0]
+                if not is_valid_label(label):
+                    raise NameError(f"Label '{label}' is not valid")
                 self.labels[label] = cur_addr
             
             else:
@@ -92,6 +112,8 @@ class Interpreter:
                 inst_match = re.findall(r"(?:(\w+):)?\s*(.+)", line)[0]
                 label, inst = inst_match
                 if label != "":
+                    if not is_valid_label(label):
+                        raise NameError(f"Label '{label}' is not valid")
                     self.labels[label] = cur_addr
                 
                 # Update list of instructions

@@ -38,7 +38,7 @@ def is_vreg(name: str):
             return True
     return False
 
-def regname2idx(name: str):
+def r2idx(name: str):
     """
     Return index of register given name.
     """
@@ -46,3 +46,16 @@ def regname2idx(name: str):
         if name in names:
             return reg_idx
     raise Exception(f"Register name '{name}' not found.")
+
+def vr2idx(name: str):
+    """
+    Return index of virtual register given name.
+    """
+    for reg_idx, names in enumerate(VREG_NAMES):
+        # Our ISA only supports 16 virtual registers
+        if not 1 <= reg_idx <= 15:
+            continue
+        
+        if names != None and name in names:
+            return reg_idx
+    raise Exception(f"Virtual register name '{name}' not found.")

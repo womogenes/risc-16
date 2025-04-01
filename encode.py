@@ -1,13 +1,12 @@
 # Encodes instructions.
 
 import re
-from collections import defaultdict
-
-from utils.reg_names import regname2idx, is_vreg
+from utils.reg_names import r2idx, is_vreg
 from utils.literals import encode_literal
+from utils.pseudo import expand
 
 
-def encode(inst: str, addr: int, labels: dict) -> int:
+def encode(inst: str, addr: int, labels: dict | None) -> int:
     """
     Encodes instruction as a 16-bit integer.
         inst: raw instruction
@@ -23,7 +22,7 @@ def encode(inst: str, addr: int, labels: dict) -> int:
         """
         Encode reg name as 3 bits.
         """
-        idx = regname2idx(reg_name)
+        idx = r2idx(reg_name)
         return bin(idx)[2:].zfill(3)
 
     def si(x: str, width: int, signed: bool, offset: bool = False) -> str:
@@ -55,7 +54,12 @@ def encode(inst: str, addr: int, labels: dict) -> int:
         return sum([encode(inst, addr, labels) for inst in subinstructions], [])
 
     opcode, args_str = re.findall(r"^([\.\w]+)(?: (.+))?$", inst)[0]
-    args = re.split(r"[,\s]+", args_str)
+    args = re.split(r"[,\s]+", args_str) if args_str else []
+
+    # Check if instruction uses virtual registers
+    expanded = expand(inst, opcode, args)
+    if len(expanded) > 1:
+        return join(expanded)
 
     # FILL DIRECTIVE
     if opcode == ".fill":
@@ -63,12 +67,12 @@ def encode(inst: str, addr: int, labels: dict) -> int:
 
     # PSEUDOINSTRUCTIONS
     if opcode == "halt":
-        return encode("jalr 0, 0", addr, labels)
+        return join(["jalr 0, 0"])
 
     if opcode == "neg":
         rd, rs = args
         return join([f"nand {rd}, {rs}, {rs}",
-                     f"addi {rd}, {rd}, 1"])
+        f"addi {rd}, {rd}, 1"])
 
     if opcode == "nop":
         return join([f"add 0, 0, 0"])
